@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captcha Solver</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        #solution {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Captcha Solver</h1>
+    <div id="captcha-container">
+        <img id="captcha-image" src="" alt="Captcha Image">
+    </div>
+    <div id="solution"></div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const captchaUrl = urlParams.get('url') || 'sample.png';
+        const captchaImage = document.getElementById('captcha-image');
+        const solutionDiv = document.getElementById('solution');
+
+        captchaImage.src = captchaUrl;
+
+        function solveCaptcha() {
+            fetch(captchaUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.blob();
+                })
+                .then(blob => {
+                    const formData = new FormData();
+                    formData.append('image', blob, 'captcha.png');
+
+                    return fetch('https://s23f1003086-llm-project-23f1003086.hf.space/solve-image', {
+                        method: 'POST',
+                        body: formData
+                    });
+                })
+                .then(response => response.json())
+                .then(data => {
+                    solutionDiv.textContent = data.solution || 'No solution found';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    solutionDiv.textContent = 'Error solving captcha';
+                });
+        }
+
+        setTimeout(solveCaptcha, 15000);
+    </script>
+</body>
+</html>
